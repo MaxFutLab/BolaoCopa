@@ -21,13 +21,23 @@ export function LoginPage() {
 
     try {
       if (mode === "signin") await signIn(email, password);
-      if (mode === "signup") await signUp(name, email, password);
+      if (mode === "signup") {
+        const result = await signUp(name, email, password);
+        if (result === "check-email") {
+          setMode("signin");
+          setMessage(
+            "Conta criada. Confira seu email e clique no link de confirmação antes de entrar.",
+          );
+        }
+      }
       if (mode === "reset") {
         await resetPassword(email);
-        setMessage("Se o email existir, enviaremos um link de recuperação.");
+        setMessage(
+          "Se o email existir, enviaremos um link para criar uma nova senha.",
+        );
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Não foi possível continuar.");
+      setMessage(getAuthErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -137,10 +147,32 @@ export function LoginPage() {
               {mode === "reset" && "Enviar recuperação"}
             </button>
 
-            {message ? <p className="text-sm font-semibold text-red-700">{message}</p> : null}
+            {message ? (
+              <p className="rounded-md bg-amber-50 p-3 text-sm font-semibold text-amber-900">
+                {message}
+              </p>
+            ) : null}
           </form>
         </div>
       </section>
     </main>
   );
+}
+
+function getAuthErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("email not confirmed")) {
+    return "Seu email ainda não foi confirmado. Abra o email recebido e clique no link de confirmação.";
+  }
+
+  if (
+    normalized.includes("invalid login credentials") ||
+    normalized.includes("invalid credentials")
+  ) {
+    return "Email ou senha inválidos. Se você acabou de criar a conta, confirme o email antes de entrar.";
+  }
+
+  return message || "Não foi possível continuar.";
 }

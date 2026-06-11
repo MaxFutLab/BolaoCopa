@@ -14,8 +14,13 @@ type AuthContextValue = {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (name: string, email: string, password: string) => Promise<void>;
+  signUp: (
+    name: string,
+    email: string,
+    password: string,
+  ) => Promise<"check-email" | "signed-in">;
   resetPassword: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -113,22 +118,32 @@ export function AuthProvider({ children }: PropsWithChildren) {
           const nextProfile = { ...demoProfile, name, email };
           localStorage.setItem(mockSessionKey, JSON.stringify(nextProfile));
           setProfile(nextProfile);
-          return;
+          return "signed-in";
         }
 
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { name } },
+          options: {
+            data: { name },
+            emailRedirectTo: `${window.location.origin}/login?confirmed=1`,
+          },
         });
         if (error) throw error;
+        return data.session ? "signed-in" : "check-email";
       },
       async resetPassword(email) {
         if (!isSupabaseConfigured || !supabase) return;
 
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/reset-password`,
         });
+        if (error) throw error;
+      },
+      async updatePassword(password) {
+        if (!isSupabaseConfigured || !supabase) return;
+
+        const { error } = await supabase.auth.updateUser({ password });
         if (error) throw error;
       },
       async signOut() {

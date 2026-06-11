@@ -8,6 +8,7 @@ import { FinalPredictionPage } from "./pages/FinalPredictionPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MatchPredictionsPage } from "./pages/MatchPredictionsPage";
 import { RankingPage } from "./pages/RankingPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 
 export function App() {
   const { profile, loading } = useAuth();
@@ -24,6 +25,7 @@ export function App() {
     return (
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
@@ -38,6 +40,7 @@ export function App() {
         <Route path="/final" element={<FinalPredictionPage />} />
         <Route path="/ranking" element={<RankingPage />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

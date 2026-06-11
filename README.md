@@ -63,8 +63,20 @@ VITE_SUPABASE_ANON_KEY=sua-chave-anon-publica
 2. Abra `SQL Editor`.
 3. Rode todo o conteúdo de `supabase/schema.sql`.
 4. Em `Authentication > Providers`, deixe `Email` habilitado.
-5. Crie uma conta pelo app.
-6. Para tornar seu usuário admin, rode no SQL Editor:
+5. Em `Authentication > URL Configuration`, configure:
+
+```text
+Site URL: https://seu-site.vercel.app
+Redirect URLs:
+https://seu-site.vercel.app/**
+http://localhost:5173/**
+```
+
+Sem essas URLs, os links de confirmação de email e recuperação de senha podem abrir uma página indisponível.
+
+6. Crie uma conta pelo app.
+7. Se a confirmação por email estiver ativa, abra o email recebido e confirme a conta antes de fazer login.
+8. Para tornar seu usuário admin, rode no SQL Editor:
 
 ```sql
 update public.users_profile
