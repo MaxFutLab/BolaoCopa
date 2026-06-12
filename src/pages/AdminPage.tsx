@@ -1,20 +1,11 @@
-import { FormEvent, useEffect, useState } from "react";
-import {
-  Check,
-  Edit2,
-  Plus,
-  RefreshCw,
-  Save,
-  ShieldAlert,
-  Trash2,
-  X,
-} from "lucide-react";
+import { FormEvent, useState } from "react";
+import { Check, RefreshCw, Save, ShieldAlert, X } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { RankingTable } from "../components/RankingTable";
 import { useAuth } from "../lib/auth";
 import { useCompetition } from "../lib/competitions";
 import { usePoolData } from "../lib/usePoolData";
-import type { Match, MatchWithTeams, PoolMembershipWithProfile, Team } from "../types";
+import type { MatchWithTeams, PoolMembershipWithProfile, Team } from "../types";
 
 export function AdminPage() {
   const { profile } = useAuth();
@@ -23,9 +14,6 @@ export function AdminPage() {
     teams,
     matches,
     ranking,
-    createMatch,
-    updateMatch,
-    deleteMatch,
     saveMatchResult,
     recalculateScores,
     saveRealGroupClassified,
@@ -33,14 +21,13 @@ export function AdminPage() {
     loading,
   } = usePoolData(profile?.id);
   const [message, setMessage] = useState("");
-  const [editingMatch, setEditingMatch] = useState<MatchWithTeams | null>(null);
 
   if (!profile?.is_admin) {
     return (
       <section className="surface p-6">
         <ShieldAlert className="text-red-700" />
         <h2 className="mt-3 text-xl font-black text-slate-950">Acesso restrito</h2>
-        <p className="text-sm text-slate-600">Apenas administradores podem abrir esta área.</p>
+        <p className="text-sm text-slate-600">Apenas administradores podem abrir esta area.</p>
       </section>
     );
   }
@@ -51,7 +38,7 @@ export function AdminPage() {
       await action();
       setMessage(success);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Ação não concluída.");
+      setMessage(error instanceof Error ? error.message : "Acao nao concluida.");
     }
   }
 
@@ -59,8 +46,8 @@ export function AdminPage() {
     <>
       <PageHeader
         eyebrow="Admin"
-        title="Gerenciar bolão"
-        description="Gerencie jogos, resultados reais e recalcule a pontuação. As seleções são fixas."
+        title="Gerenciar bolao"
+        description="Aprove jogadores, lance resultados reais e recalcule a pontuacao. Cadastro, edicao e remocao de jogos estao temporariamente desativados."
       />
 
       {message ? (
@@ -73,46 +60,6 @@ export function AdminPage() {
         <p className="text-sm font-semibold text-slate-500">Carregando admin...</p>
       ) : (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-6">
-          <section className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <MatchForm
-              teams={teams}
-              match={editingMatch}
-              onCreate={(match) => runAction(() => createMatch(match), "Jogo cadastrado.")}
-              onUpdate={(matchId, match) =>
-                runAction(() => updateMatch(matchId, match), "Jogo atualizado.")
-              }
-              onCancel={() => setEditingMatch(null)}
-            />
-          </section>
-
-          <section className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <MatchesManager
-              matches={matches}
-              onEdit={setEditingMatch}
-              onDelete={(matchId) =>
-                runAction(() => deleteMatch(matchId), "Jogo removido.")
-              }
-            />
-          </section>
-
-          <section className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <GroupResultsForm
-              teams={teams}
-              onSave={(value) =>
-                runAction(
-                  () => saveRealGroupClassified(value),
-                  "Classificados reais salvos.",
-                )
-              }
-            />
-            <PodiumResultsForm
-              teams={teams}
-              onSave={(value) =>
-                runAction(() => saveRealPodium(value), "Pódio real salvo.")
-              }
-            />
-          </section>
-
           <MembershipRequests
             requests={pendingMemberships}
             onUpdate={(membershipId, status) =>
@@ -126,16 +73,14 @@ export function AdminPage() {
           <section className="surface p-4">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="text-lg font-black text-emerald-950">Resultados dos jogos</h3>
+                <h3 className="text-lg font-black text-slate-950">Resultados dos jogos</h3>
                 <p className="text-sm text-slate-500">
-                  Ao salvar um resultado, a pontuação dos palpites daquele jogo é recalculada.
+                  Ao salvar um resultado, a pontuacao dos palpites daquele jogo e recalculada.
                 </p>
               </div>
               <button
                 className="btn-secondary"
-                onClick={() =>
-                  void runAction(recalculateScores, "Pontuação recalculada.")
-                }
+                onClick={() => void runAction(recalculateScores, "Pontuacao recalculada.")}
               >
                 <RefreshCw size={17} />
                 Recalcular tudo
@@ -157,9 +102,27 @@ export function AdminPage() {
             </div>
           </section>
 
+          <section className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <GroupResultsForm
+              teams={teams}
+              onSave={(value) =>
+                runAction(
+                  () => saveRealGroupClassified(value),
+                  "Classificados reais salvos.",
+                )
+              }
+            />
+            <PodiumResultsForm
+              teams={teams}
+              onSave={(value) =>
+                runAction(() => saveRealPodium(value), "Podio real salvo.")
+              }
+            />
+          </section>
+
           <section>
             <div className="mb-3">
-              <h3 className="text-lg font-black text-emerald-950">Usuários e pontos</h3>
+              <h3 className="text-lg font-black text-slate-950">Usuarios e pontos</h3>
             </div>
             <RankingTable rows={ranking} currentUserId={profile.id} />
           </section>
@@ -179,9 +142,9 @@ function MembershipRequests({
   return (
     <section className="surface p-4">
       <div className="mb-4">
-        <h3 className="text-lg font-black text-emerald-950">Pedidos de participação</h3>
+        <h3 className="text-lg font-black text-slate-950">Aprovar jogadores</h3>
         <p className="text-sm text-slate-500">
-          Aprove quem pode entrar em cada núcleo de amigos.
+          Aprove quem pode entrar em cada nucleo de amigos.
         </p>
       </div>
 
@@ -228,164 +191,6 @@ function MembershipRequests({
   );
 }
 
-function MatchesManager({
-  matches,
-  onEdit,
-  onDelete,
-}: {
-  matches: MatchWithTeams[];
-  onEdit: (match: MatchWithTeams) => void;
-  onDelete: (matchId: string) => Promise<void>;
-}) {
-  return (
-    <section className="surface p-4">
-      <h3 className="text-lg font-black text-emerald-950">Jogos cadastrados</h3>
-      <div className="mt-4 grid gap-3">
-        {matches.map((match) => (
-          <div
-            key={match.id}
-            className="grid gap-3 rounded-md border border-slate-100 p-3 sm:grid-cols-[1fr_auto] sm:items-center"
-          >
-            <div>
-              <p className="font-black text-slate-950">
-                {match.team_a.name} x {match.team_b.name}
-              </p>
-              <p className="text-sm text-slate-500">
-                {match.stage}
-                {match.group_name ? ` · Grupo ${match.group_name}` : ""}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button className="btn-secondary" type="button" onClick={() => onEdit(match)}>
-                <Edit2 size={17} />
-                Editar
-              </button>
-              <button
-                className="btn-secondary text-red-700 hover:border-red-200 hover:text-red-800"
-                type="button"
-                onClick={() => {
-                  if (window.confirm("Remover este jogo e seus palpites?")) {
-                    void onDelete(match.id);
-                  }
-                }}
-              >
-                <Trash2 size={17} />
-                Remover
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function toDatetimeLocal(value: string) {
-  const date = new Date(value);
-  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
-}
-
-function MatchForm({
-  teams,
-  match,
-  onCreate,
-  onUpdate,
-  onCancel,
-}: {
-  teams: Team[];
-  match: MatchWithTeams | null;
-  onCreate: (
-    match: Omit<Match, "id" | "score_a" | "score_b" | "is_finished">,
-  ) => Promise<void>;
-  onUpdate: (
-    matchId: string,
-    match: Omit<Match, "id" | "score_a" | "score_b" | "is_finished">,
-  ) => Promise<void>;
-  onCancel: () => void;
-}) {
-  const [teamAId, setTeamAId] = useState("");
-  const [teamBId, setTeamBId] = useState("");
-  const [groupName, setGroupName] = useState("");
-  const [stage, setStage] = useState("Fase de grupos");
-  const [startsAt, setStartsAt] = useState("");
-
-  useEffect(() => {
-    setTeamAId(match?.team_a_id ?? "");
-    setTeamBId(match?.team_b_id ?? "");
-    setGroupName(match?.group_name ?? "");
-    setStage(match?.stage ?? "Fase de grupos");
-    setStartsAt(match ? toDatetimeLocal(match.starts_at) : "");
-  }, [match]);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const payload = {
-      team_a_id: teamAId || teams[0]?.id || "",
-      team_b_id: teamBId || teams[1]?.id || "",
-      group_name: groupName || null,
-      stage,
-      starts_at: new Date(startsAt).toISOString(),
-    };
-
-    if (match) {
-      await onUpdate(match.id, payload);
-      onCancel();
-    } else {
-      await onCreate(payload);
-    }
-
-    setStartsAt("");
-  }
-
-  return (
-    <form className="surface grid min-w-0 gap-3 p-4" onSubmit={handleSubmit}>
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="text-lg font-black text-emerald-950">
-          {match ? "Editar jogo" : "Cadastrar jogo"}
-        </h3>
-        {match ? (
-          <button className="btn-secondary px-3 py-1.5" type="button" onClick={onCancel}>
-            <X size={16} />
-            Cancelar
-          </button>
-        ) : null}
-      </div>
-      <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-        <TeamSelect value={teamAId} onChange={setTeamAId} teams={teams} label="Time A" />
-        <TeamSelect value={teamBId} onChange={setTeamBId} teams={teams} label="Time B" />
-      </div>
-      <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-        <input
-          className="field"
-          placeholder="Grupo opcional"
-          value={groupName}
-          onChange={(event) => setGroupName(event.target.value.toUpperCase())}
-        />
-        <select className="field" value={stage} onChange={(event) => setStage(event.target.value)}>
-          <option>Fase de grupos</option>
-          <option>Oitavas</option>
-          <option>Quartas</option>
-          <option>Semifinal</option>
-          <option>Terceiro lugar</option>
-          <option>Final</option>
-        </select>
-      </div>
-      <input
-        className="field"
-        type="datetime-local"
-        value={startsAt}
-        onChange={(event) => setStartsAt(event.target.value)}
-        required
-      />
-      <button className="btn-primary">
-        {match ? <Save size={17} /> : <Plus size={17} />}
-        {match ? "Salvar jogo" : "Cadastrar jogo"}
-      </button>
-    </form>
-  );
-}
-
 function GroupResultsForm({
   teams,
   onSave,
@@ -420,7 +225,7 @@ function GroupResultsForm({
 
   return (
     <form className="surface grid min-w-0 gap-3 p-4" onSubmit={handleSubmit}>
-      <h3 className="text-lg font-black text-emerald-950">Classificados reais</h3>
+      <h3 className="text-lg font-black text-slate-950">Classificados reais</h3>
       {groups.map((group) => {
         const groupTeams = teams.filter((team) => team.group_name === group);
         return (
@@ -479,8 +284,8 @@ function PodiumResultsForm({
 
   return (
     <form className="surface grid min-w-0 gap-3 p-4" onSubmit={handleSubmit}>
-      <h3 className="text-lg font-black text-emerald-950">Pódio real</h3>
-      <TeamSelect label="Campeão" teams={teams} value={championId} onChange={setChampionId} />
+      <h3 className="text-lg font-black text-slate-950">Podio real</h3>
+      <TeamSelect label="Campeao" teams={teams} value={championId} onChange={setChampionId} />
       <TeamSelect label="Vice" teams={teams} value={runnerUpId} onChange={setRunnerUpId} />
       <TeamSelect
         label="Terceiro"
@@ -490,7 +295,7 @@ function PodiumResultsForm({
       />
       <button className="btn-primary">
         <Save size={17} />
-        Salvar pódio real
+        Salvar podio real
       </button>
     </form>
   );
