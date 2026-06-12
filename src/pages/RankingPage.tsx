@@ -1,5 +1,5 @@
-import { RankingTable } from "../components/RankingTable";
 import { PageHeader } from "../components/PageHeader";
+import { RankingTable } from "../components/RankingTable";
 import { useAuth } from "../lib/auth";
 import { usePoolData } from "../lib/usePoolData";
 
@@ -11,8 +11,8 @@ export function RankingPage() {
     <>
       <PageHeader
         eyebrow="Ranking"
-        title="Classificação geral"
-        description="Atualização em tempo real quando resultados ou palpites pontuados mudam."
+        title="Classificacao geral"
+        description="Atualizacao em tempo real quando resultados ou palpites pontuados mudam."
       />
 
       {loading ? (

@@ -13,7 +13,8 @@ Site simples de bolão entre amigos feito com React, Vite, TypeScript, TailwindC
 - Múltiplos bolões no mesmo app, como "Resenha sem regras" e "Amigos de papinha".
 - Usuário pode pedir entrada em mais de um bolão e o admin aprova ou recusa.
 - Seletor no topo para trocar qual bolão está sendo visualizado.
-- Área admin para cadastrar, editar e remover seleções e jogos.
+- Área admin para cadastrar, editar e remover jogos.
+- Seleções ficam fixas no catálogo inicial.
 - Admin também lança resultados reais, marca classificados reais, define pódio real, recalcula pontuação e acompanha usuários.
 - Modo demo local com dados mockados quando Supabase não está configurado.
 
@@ -73,6 +74,18 @@ http://localhost:5173/**
 ```
 
 Sem essas URLs, os links de confirmação de email e recuperação de senha podem abrir uma página indisponível.
+
+### Erro `email rate limit exceeded`
+
+O Supabase limita o envio de emails quando você usa o servidor padrão dele. Na documentação oficial, endpoints que enviam email, como cadastro e recuperação de senha, ficam limitados no provedor embutido e esse limite só aumenta com SMTP próprio.
+
+Para resolver em produção:
+
+1. Aguarde o limite liberar, se estiver apenas testando.
+2. Ou configure SMTP em `Supabase > Authentication > SMTP Settings`.
+3. Uma opção comum é usar Resend, Brevo, SendGrid, Postmark ou outro serviço SMTP.
+
+Depois de configurar SMTP próprio, os emails de confirmação e recuperação passam a usar seu provedor.
 
 6. Crie uma conta pelo app.
 7. Se a confirmação por email estiver ativa, abra o email recebido e confirme a conta antes de fazer login.
@@ -161,6 +174,5 @@ supabase/
 - Pedidos de participação começam como `pending` e só o admin altera para `approved` ou `rejected`.
 - Palpites de jogos são bloqueados no frontend e também por RLS no banco.
 - Palpites de classificação e final só aceitam inserção; edição comum não é liberada.
-- Apenas admins podem alterar seleções, jogos, resultados e configurações reais.
+- Apenas admins podem alterar jogos, resultados e configurações reais.
 - Ao remover um jogo, os palpites ligados a ele são removidos no Supabase por cascade.
-- Seleções usadas em jogos não podem ser removidas até que os jogos sejam editados ou removidos.

@@ -12,7 +12,7 @@ export function StatusBadge({ match, prediction }: StatusBadgeProps) {
 
   if (!canEdit) {
     return (
-      <span className="badge bg-slate-100 text-slate-700">
+      <span className="badge bg-slate-900 text-white shadow-sm shadow-slate-900/20">
         <Lock size={13} className="mr-1" />
         Bloqueado
       </span>
@@ -21,7 +21,7 @@ export function StatusBadge({ match, prediction }: StatusBadgeProps) {
 
   if (prediction) {
     return (
-      <span className="badge bg-blue-50 text-blue-700">
+      <span className="badge bg-sky-100 text-sky-800 ring-1 ring-sky-200">
         <Save size={13} className="mr-1" />
         Salvo
       </span>
@@ -29,7 +29,7 @@ export function StatusBadge({ match, prediction }: StatusBadgeProps) {
   }
 
   return (
-    <span className="badge bg-emerald-50 text-emerald-800">
+    <span className="badge bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200">
       <Pencil size={13} className="mr-1" />
       Aberto
     </span>

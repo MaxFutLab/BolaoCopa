@@ -23,7 +23,7 @@ export function MatchPredictionsPage() {
       <PageHeader
         eyebrow="Palpites"
         title="Jogos"
-        description="Edite cada placar até 1 hora antes do início da partida."
+        description="Edite cada placar ate 1 hora antes do inicio da partida."
       />
 
       {loading ? (

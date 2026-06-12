@@ -59,16 +59,16 @@ export function ClassificationPage() {
       await confirmGroupPredictions(payload);
       setMessage("Classificados confirmados.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Não foi possível confirmar.");
+      setMessage(error instanceof Error ? error.message : "Nao foi possivel confirmar.");
     }
   }
 
   return (
     <>
       <PageHeader
-        eyebrow="Classificação"
+        eyebrow="Classificacao"
         title="Classificados por grupo"
-        description="Escolha dois classificados por grupo. Depois de confirmar, a edição fica bloqueada."
+        description="Escolha dois classificados por grupo. Depois de confirmar, a edicao fica bloqueada."
       />
 
       {loading ? (
@@ -80,54 +80,38 @@ export function ClassificationPage() {
           <div className="grid gap-4 lg:grid-cols-2">
             {groups.map((group) => {
               const groupTeams = teams.filter((team) => team.group_name === group);
+
               return (
-                <section className="surface p-4" key={group}>
-                  <h3 className="mb-4 text-lg font-black text-emerald-950">Grupo {group}</h3>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="grid gap-1">
-                      <span className="text-sm font-bold text-slate-700">1º classificado</span>
-                      <select
-                        className="field"
-                        value={choices[group]?.first ?? ""}
-                        onChange={(event) =>
-                          setChoices({
-                            ...choices,
-                            [group]: {
-                              ...choices[group],
-                              first: event.target.value,
-                            },
-                          })
-                        }
-                      >
-                        {groupTeams.map((team) => (
-                          <option key={team.id} value={team.id}>
-                            {team.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="grid gap-1">
-                      <span className="text-sm font-bold text-slate-700">2º classificado</span>
-                      <select
-                        className="field"
-                        value={choices[group]?.second ?? ""}
-                        onChange={(event) =>
-                          setChoices({
-                            ...choices,
-                            [group]: {
-                              ...choices[group],
-                              second: event.target.value,
-                            },
-                          })
-                        }
-                      >
-                        {groupTeams.map((team) => (
-                          <option key={team.id} value={team.id}>
-                            {team.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                <section className="surface overflow-hidden" key={group}>
+                  <div className="bg-slate-950 px-4 py-3 text-white">
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-200">
+                      Grupo {group}
+                    </p>
+                    <h3 className="text-lg font-black">Escolha seus classificados</h3>
+                  </div>
+                  <div className="grid gap-3 p-4 sm:grid-cols-2">
+                    <SelectGroupTeam
+                      label="1o classificado"
+                      value={choices[group]?.first ?? ""}
+                      teams={groupTeams}
+                      onChange={(value) =>
+                        setChoices({
+                          ...choices,
+                          [group]: { ...choices[group], first: value },
+                        })
+                      }
+                    />
+                    <SelectGroupTeam
+                      label="2o classificado"
+                      value={choices[group]?.second ?? ""}
+                      teams={groupTeams}
+                      onChange={(value) =>
+                        setChoices({
+                          ...choices,
+                          [group]: { ...choices[group], second: value },
+                        })
+                      }
+                    />
                   </div>
                 </section>
               );
@@ -144,6 +128,31 @@ export function ClassificationPage() {
   );
 }
 
+function SelectGroupTeam({
+  label,
+  value,
+  teams,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  teams: { id: string; name: string }[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="grid min-w-0 gap-1">
+      <span className="text-sm font-black text-slate-700">{label}</span>
+      <select className="field" value={value} onChange={(event) => onChange(event.target.value)}>
+        {teams.map((team) => (
+          <option key={team.id} value={team.id}>
+            {team.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 function LockedGroupPredictions({
   teams,
   predictions,
@@ -153,20 +162,25 @@ function LockedGroupPredictions({
 }) {
   return (
     <div className="surface p-4">
-      <div className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-700">
+      <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-slate-950 px-3 py-1 text-sm font-bold text-white">
         <Lock size={17} />
         Palpite confirmado e bloqueado
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         {predictions.map((prediction) => (
-          <div key={`${prediction.group_name}-${prediction.position}`} className="rounded-md bg-slate-50 p-3">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-red-700">
-              Grupo {prediction.group_name} · {prediction.position}º
+          <div
+            key={`${prediction.group_name}-${prediction.position}`}
+            className="rounded-md border border-slate-100 bg-slate-50 p-3"
+          >
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-sky-700">
+              Grupo {prediction.group_name} - {prediction.position}o
             </p>
-            <p className="font-black text-emerald-950">
+            <p className="mt-1 font-black text-slate-950">
               {teams.find((team) => team.id === prediction.team_id)?.name}
             </p>
-            <p className="text-sm text-slate-500">{prediction.points} ponto(s)</p>
+            <p className="text-sm font-semibold text-slate-500">
+              {prediction.points} ponto(s)
+            </p>
           </div>
         ))}
       </div>

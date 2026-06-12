@@ -23,9 +23,6 @@ export function AdminPage() {
     teams,
     matches,
     ranking,
-    createTeam,
-    updateTeam,
-    deleteTeam,
     createMatch,
     updateMatch,
     deleteMatch,
@@ -36,7 +33,6 @@ export function AdminPage() {
     loading,
   } = usePoolData(profile?.id);
   const [message, setMessage] = useState("");
-  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [editingMatch, setEditingMatch] = useState<MatchWithTeams | null>(null);
 
   if (!profile?.is_admin) {
@@ -64,7 +60,7 @@ export function AdminPage() {
       <PageHeader
         eyebrow="Admin"
         title="Gerenciar bolão"
-        description="Cadastre seleções, jogos, resultados reais e recalcule a pontuação."
+        description="Gerencie jogos, resultados reais e recalcule a pontuação. As seleções são fixas."
       />
 
       {message ? (
@@ -78,16 +74,6 @@ export function AdminPage() {
       ) : (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-6">
           <section className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <TeamForm
-              team={editingTeam}
-              onCreate={(team) =>
-                runAction(() => createTeam(team), "Seleção cadastrada.")
-              }
-              onUpdate={(teamId, team) =>
-                runAction(() => updateTeam(teamId, team), "SeleÃ§Ã£o atualizada.")
-              }
-              onCancel={() => setEditingTeam(null)}
-            />
             <MatchForm
               teams={teams}
               match={editingMatch}
@@ -100,13 +86,6 @@ export function AdminPage() {
           </section>
 
           <section className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <TeamsManager
-              teams={teams}
-              onEdit={setEditingTeam}
-              onDelete={(teamId) =>
-                runAction(() => deleteTeam(teamId), "SeleÃ§Ã£o removida.")
-              }
-            />
             <MatchesManager
               matches={matches}
               onEdit={setEditingMatch}
@@ -249,51 +228,6 @@ function MembershipRequests({
   );
 }
 
-function TeamsManager({
-  teams,
-  onEdit,
-  onDelete,
-}: {
-  teams: Team[];
-  onEdit: (team: Team) => void;
-  onDelete: (teamId: string) => Promise<void>;
-}) {
-  return (
-    <section className="surface p-4">
-      <h3 className="text-lg font-black text-emerald-950">Seleções cadastradas</h3>
-      <div className="mt-4 grid gap-3">
-        {teams.map((team) => (
-          <div
-            key={team.id}
-            className="grid gap-3 rounded-md border border-slate-100 p-3 sm:grid-cols-[1fr_auto] sm:items-center"
-          >
-            <div>
-              <p className="font-black text-slate-950">{team.name}</p>
-              <p className="text-sm text-slate-500">Grupo {team.group_name}</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button className="btn-secondary" type="button" onClick={() => onEdit(team)}>
-                <Edit2 size={17} />
-                Editar
-              </button>
-              <button
-                className="btn-secondary text-red-700 hover:border-red-200 hover:text-red-800"
-                type="button"
-                onClick={() => {
-                  if (window.confirm("Remover esta seleção?")) void onDelete(team.id);
-                }}
-              >
-                <Trash2 size={17} />
-                Remover
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function MatchesManager({
   matches,
   onEdit,
@@ -343,88 +277,6 @@ function MatchesManager({
         ))}
       </div>
     </section>
-  );
-}
-
-function TeamForm({
-  team,
-  onCreate,
-  onUpdate,
-  onCancel,
-}: {
-  team: Team | null;
-  onCreate: (team: Omit<Team, "id">) => Promise<void>;
-  onUpdate: (teamId: string, team: Omit<Team, "id">) => Promise<void>;
-  onCancel: () => void;
-}) {
-  const [name, setName] = useState("");
-  const [groupName, setGroupName] = useState("");
-  const [flagUrl, setFlagUrl] = useState("");
-
-  useEffect(() => {
-    setName(team?.name ?? "");
-    setGroupName(team?.group_name ?? "");
-    setFlagUrl(team?.flag_url ?? "");
-  }, [team]);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const payload = {
-      name,
-      group_name: groupName.toUpperCase(),
-      flag_url: flagUrl || null,
-    };
-
-    if (team) {
-      await onUpdate(team.id, payload);
-      onCancel();
-    } else {
-      await onCreate(payload);
-    }
-
-    setName("");
-    setGroupName("");
-    setFlagUrl("");
-  }
-
-  return (
-    <form className="surface grid min-w-0 gap-3 p-4" onSubmit={handleSubmit}>
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="text-lg font-black text-emerald-950">
-          {team ? "Editar seleção" : "Cadastrar seleção"}
-        </h3>
-        {team ? (
-          <button className="btn-secondary px-3 py-1.5" type="button" onClick={onCancel}>
-            <X size={16} />
-            Cancelar
-          </button>
-        ) : null}
-      </div>
-      <input
-        className="field"
-        placeholder="Nome da seleção"
-        value={name}
-        onChange={(event) => setName(event.target.value)}
-        required
-      />
-      <input
-        className="field"
-        placeholder="Grupo, ex: A"
-        value={groupName}
-        onChange={(event) => setGroupName(event.target.value)}
-        required
-      />
-      <input
-        className="field"
-        placeholder="URL da bandeira opcional"
-        value={flagUrl}
-        onChange={(event) => setFlagUrl(event.target.value)}
-      />
-      <button className="btn-primary">
-        {team ? <Save size={17} /> : <Plus size={17} />}
-        {team ? "Salvar seleção" : "Cadastrar seleção"}
-      </button>
-    </form>
   );
 }
 
