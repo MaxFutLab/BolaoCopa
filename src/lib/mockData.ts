@@ -51,6 +51,12 @@ export const mockCompetitions: Competition[] = [
     description: "Núcleo paralelo para outra roda de amigos.",
     is_active: true,
   },
+  {
+    id: "comunidade-top-eleven-brasil",
+    name: "Comunidade Top Eleven Brasil",
+    description: "Bolao da comunidade Top Eleven Brasil.",
+    is_active: true,
+  },
 ];
 
 export const mockMemberships: PoolMembership[] = [
@@ -202,7 +208,16 @@ export function setMockMatches(matches: Match[]) {
 }
 
 export function getMockCompetitions(): Competition[] {
-  return readStorage(competitionsKey, mockCompetitions);
+  const stored = readStorage(competitionsKey, mockCompetitions);
+  const merged = [
+    ...stored,
+    ...mockCompetitions.filter(
+      (competition) => !stored.some((item) => item.id === competition.id),
+    ),
+  ];
+
+  if (merged.length !== stored.length) writeStorage(competitionsKey, merged);
+  return merged;
 }
 
 export function getMockMemberships(userId?: string): PoolMembershipWithProfile[] {

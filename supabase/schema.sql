@@ -318,6 +318,12 @@ insert into public.pool_competitions (id, name, description, is_active) values
     'Amigos de papinha',
     'Núcleo paralelo para outra roda de amigos.',
     true
+  ),
+  (
+    '10000000-0000-0000-0000-000000000003',
+    'Comunidade Top Eleven Brasil',
+    'Bolao da comunidade Top Eleven Brasil.',
+    true
   )
 on conflict (id) do nothing;
 

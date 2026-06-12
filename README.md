@@ -10,7 +10,7 @@ Site simples de bolão entre amigos feito com React, Vite, TypeScript, TailwindC
 - Palpite de classificados da fase de grupos, bloqueado após confirmação.
 - Palpite de campeão, vice e terceiro lugar, bloqueado após confirmação.
 - Ranking com pontos de jogos, classificação, final e total.
-- Múltiplos bolões no mesmo app, como "Resenha sem regras" e "Amigos de papinha".
+- Multiplos boloes no mesmo app: "Resenha sem regras", "Amigos de papinha" e "Comunidade Top Eleven Brasil".
 - Usuário pode pedir entrada em mais de um bolão e o admin aprova ou recusa.
 - Seletor no topo para trocar qual bolão está sendo visualizado.
 - Área admin para cadastrar, editar e remover jogos.
