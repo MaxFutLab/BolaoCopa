@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { MatchPredictionCard } from "../components/MatchPredictionCard";
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../lib/auth";
+import { getMatchPredictionEditStatus } from "../lib/scoring";
 import { usePoolData } from "../lib/usePoolData";
 import type { MatchWithTeams } from "../types";
 
@@ -15,6 +16,7 @@ export function MatchPredictionsPage() {
     profile?.id,
   );
   const [collapsed, setCollapsed] = useState({
+    available: false,
     finished: true,
     upcoming: false,
   });
@@ -26,12 +28,26 @@ export function MatchPredictionsPage() {
       ),
     [matches],
   );
-  const finishedMatches = useMemo(
-    () => sortedMatches.filter((match) => match.is_finished),
+  const availableMatches = useMemo(
+    () =>
+      sortedMatches.filter(
+        (match) =>
+          !hasMatchPassed(match) &&
+          getMatchPredictionEditStatus(match.starts_at) === "open",
+      ),
     [sortedMatches],
   );
   const upcomingMatches = useMemo(
-    () => sortedMatches.filter((match) => !match.is_finished),
+    () =>
+      sortedMatches.filter(
+        (match) =>
+          !hasMatchPassed(match) &&
+          getMatchPredictionEditStatus(match.starts_at) !== "open",
+      ),
+    [sortedMatches],
+  );
+  const finishedMatches = useMemo(
+    () => sortedMatches.filter((match) => hasMatchPassed(match)),
     [sortedMatches],
   );
 
@@ -42,13 +58,17 @@ export function MatchPredictionsPage() {
     if (!selectedMatch) return;
 
     setCollapsed((current) => {
+      const selectedGroup = getMatchGroup(selectedMatch);
       const next = {
         ...current,
-        finished: selectedMatch.is_finished ? false : current.finished,
-        upcoming: selectedMatch.is_finished ? current.upcoming : false,
+        available: selectedGroup === "available" ? false : current.available,
+        upcoming: selectedGroup === "upcoming" ? false : current.upcoming,
+        finished: selectedGroup === "finished" ? false : current.finished,
       };
 
-      return next.finished === current.finished && next.upcoming === current.upcoming
+      return next.available === current.available &&
+        next.finished === current.finished &&
+        next.upcoming === current.upcoming
         ? current
         : next;
     });
@@ -62,7 +82,7 @@ export function MatchPredictionsPage() {
     return () => window.clearTimeout(timeout);
   }, [highlightedMatchId, loading, matches]);
 
-  function toggleGroup(group: "finished" | "upcoming") {
+  function toggleGroup(group: "available" | "finished" | "upcoming") {
     setCollapsed((current) => ({ ...current, [group]: !current[group] }));
   }
 
@@ -87,8 +107,28 @@ export function MatchPredictionsPage() {
       ) : (
         <div className="grid gap-4">
           <MatchPredictionGroup
+            title="Jogos disponiveis para palpite"
+            description="Partidas dentro da janela de 24h ate 1h antes do inicio."
+            count={availableMatches.length}
+            collapsed={collapsed.available}
+            onToggle={() => toggleGroup("available")}
+          >
+            <div className="grid gap-4 xl:grid-cols-2">
+              {availableMatches.map((match) => (
+                <MatchPredictionCard
+                  key={match.id}
+                  match={match}
+                  prediction={matchPredictions.find((item) => item.match_id === match.id)}
+                  onSave={handleSave}
+                  highlighted={match.id === highlightedMatchId}
+                />
+              ))}
+            </div>
+          </MatchPredictionGroup>
+
+          <MatchPredictionGroup
             title="Jogos ainda por acontecer"
-            description="Partidas que ainda vao abrir ou estao na janela de palpite."
+            description="Partidas futuras que ainda nao estao liberadas ou ja entraram na ultima hora."
             count={upcomingMatches.length}
             collapsed={collapsed.upcoming}
             onToggle={() => toggleGroup("upcoming")}
@@ -129,6 +169,17 @@ export function MatchPredictionsPage() {
       )}
     </>
   );
+}
+
+function hasMatchPassed(match: MatchWithTeams) {
+  return match.is_finished || new Date(match.starts_at).getTime() <= Date.now();
+}
+
+function getMatchGroup(match: MatchWithTeams): "available" | "upcoming" | "finished" {
+  if (hasMatchPassed(match)) return "finished";
+  return getMatchPredictionEditStatus(match.starts_at) === "open"
+    ? "available"
+    : "upcoming";
 }
 
 function MatchPredictionGroup({
