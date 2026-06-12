@@ -12,6 +12,7 @@ import { StatusBadge } from "./StatusBadge";
 type MatchPredictionCardProps = {
   match: MatchWithTeams;
   prediction?: MatchPrediction;
+  highlighted?: boolean;
   onSave: (
     match: MatchWithTeams,
     scoreA: number,
@@ -22,6 +23,7 @@ type MatchPredictionCardProps = {
 export function MatchPredictionCard({
   match,
   prediction,
+  highlighted = false,
   onSave,
 }: MatchPredictionCardProps) {
   const [scoreA, setScoreA] = useState(prediction?.predicted_score_a ?? 0);
@@ -52,7 +54,13 @@ export function MatchPredictionCard({
   }
 
   return (
-    <article className="surface overflow-hidden">
+    <article
+      id={`match-${match.id}`}
+      className={[
+        "surface scroll-mt-36 overflow-hidden transition",
+        highlighted ? "ring-2 ring-sky-400 ring-offset-2 ring-offset-sky-50" : "",
+      ].join(" ")}
+    >
       <div className="bg-slate-950 px-4 py-3 text-white">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

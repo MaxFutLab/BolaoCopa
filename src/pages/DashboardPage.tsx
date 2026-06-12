@@ -1,5 +1,6 @@
 import { CalendarClock, CircleCheck, Medal, Trophy } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 import { PageHeader } from "../components/PageHeader";
 import { StatusBadge } from "../components/StatusBadge";
 import { useAuth } from "../lib/auth";
@@ -58,8 +59,9 @@ export function DashboardPage() {
               const prediction = matchPredictions.find((item) => item.match_id === match.id);
 
               return (
-                <div
+                <Link
                   key={match.id}
+                  to={`/palpites?jogo=${match.id}`}
                   className="grid gap-3 rounded-md border border-slate-200 bg-white/85 p-3 shadow-sm transition hover:border-sky-200 hover:shadow-md sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                 >
                   <div className="min-w-0">
@@ -73,7 +75,7 @@ export function DashboardPage() {
                   <div className="flex justify-start sm:justify-end">
                     <StatusBadge match={match} prediction={prediction} />
                   </div>
-                </div>
+                </Link>
               );
             })}
 

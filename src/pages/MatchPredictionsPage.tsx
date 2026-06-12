@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { MatchPredictionCard } from "../components/MatchPredictionCard";
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../lib/auth";
@@ -8,6 +9,8 @@ import type { MatchWithTeams } from "../types";
 
 export function MatchPredictionsPage() {
   const { profile } = useAuth();
+  const [searchParams] = useSearchParams();
+  const highlightedMatchId = searchParams.get("jogo");
   const { matches, matchPredictions, saveMatchPrediction, loading } = usePoolData(
     profile?.id,
   );
@@ -15,12 +18,49 @@ export function MatchPredictionsPage() {
     finished: true,
     upcoming: false,
   });
-  const sortedMatches = [...matches].sort(
-    (first, second) =>
-      new Date(first.starts_at).getTime() - new Date(second.starts_at).getTime(),
+  const sortedMatches = useMemo(
+    () =>
+      [...matches].sort(
+        (first, second) =>
+          new Date(first.starts_at).getTime() - new Date(second.starts_at).getTime(),
+      ),
+    [matches],
   );
-  const finishedMatches = sortedMatches.filter((match) => match.is_finished);
-  const upcomingMatches = sortedMatches.filter((match) => !match.is_finished);
+  const finishedMatches = useMemo(
+    () => sortedMatches.filter((match) => match.is_finished),
+    [sortedMatches],
+  );
+  const upcomingMatches = useMemo(
+    () => sortedMatches.filter((match) => !match.is_finished),
+    [sortedMatches],
+  );
+
+  useEffect(() => {
+    if (!highlightedMatchId || loading) return;
+
+    const selectedMatch = matches.find((match) => match.id === highlightedMatchId);
+    if (!selectedMatch) return;
+
+    setCollapsed((current) => {
+      const next = {
+        ...current,
+        finished: selectedMatch.is_finished ? false : current.finished,
+        upcoming: selectedMatch.is_finished ? current.upcoming : false,
+      };
+
+      return next.finished === current.finished && next.upcoming === current.upcoming
+        ? current
+        : next;
+    });
+
+    const timeout = window.setTimeout(() => {
+      document
+        .getElementById(`match-${highlightedMatchId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+
+    return () => window.clearTimeout(timeout);
+  }, [highlightedMatchId, loading, matches]);
 
   function toggleGroup(group: "finished" | "upcoming") {
     setCollapsed((current) => ({ ...current, [group]: !current[group] }));
@@ -60,6 +100,7 @@ export function MatchPredictionsPage() {
                   match={match}
                   prediction={matchPredictions.find((item) => item.match_id === match.id)}
                   onSave={handleSave}
+                  highlighted={match.id === highlightedMatchId}
                 />
               ))}
             </div>
@@ -79,6 +120,7 @@ export function MatchPredictionsPage() {
                   match={match}
                   prediction={matchPredictions.find((item) => item.match_id === match.id)}
                   onSave={handleSave}
+                  highlighted={match.id === highlightedMatchId}
                 />
               ))}
             </div>
