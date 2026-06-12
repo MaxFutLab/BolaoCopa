@@ -1,7 +1,11 @@
 import { Save } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
-import { formatDateTime, formatRelativeLock } from "../lib/date";
-import { canEditMatchPrediction } from "../lib/scoring";
+import {
+  formatDateTime,
+  formatRelativeLock,
+  formatRelativePredictionOpen,
+} from "../lib/date";
+import { getMatchPredictionEditStatus } from "../lib/scoring";
 import type { MatchPrediction, MatchWithTeams } from "../types";
 import { StatusBadge } from "./StatusBadge";
 
@@ -24,7 +28,8 @@ export function MatchPredictionCard({
   const [scoreB, setScoreB] = useState(prediction?.predicted_score_b ?? 0);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
-  const locked = !canEditMatchPrediction(match.starts_at);
+  const editStatus = getMatchPredictionEditStatus(match.starts_at);
+  const locked = editStatus !== "open";
 
   useEffect(() => {
     setScoreA(prediction?.predicted_score_a ?? 0);
@@ -55,7 +60,7 @@ export function MatchPredictionCard({
               {match.stage}
             </p>
             <p className="mt-1 text-sm font-semibold text-slate-300">
-              {formatDateTime(match.starts_at)} - trava em {formatRelativeLock(match.starts_at)}
+              {formatDateTime(match.starts_at)} - {getEditWindowText(match.starts_at, editStatus)}
             </p>
           </div>
           <StatusBadge match={match} prediction={prediction} />
@@ -112,6 +117,18 @@ export function MatchPredictionCard({
       </form>
     </article>
   );
+}
+
+function getEditWindowText(startsAt: string, editStatus: "early" | "open" | "locked") {
+  if (editStatus === "early") {
+    return `abre em ${formatRelativePredictionOpen(startsAt)}`;
+  }
+
+  if (editStatus === "open") {
+    return `trava em ${formatRelativeLock(startsAt)}`;
+  }
+
+  return "bloqueado para palpites";
 }
 
 function ScoreInput({

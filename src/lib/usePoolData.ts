@@ -167,7 +167,7 @@ export function usePoolData(userId?: string) {
     }
     const poolId = selectedCompetitionId;
     if (!canEditMatchPrediction(input.match.starts_at)) {
-      throw new Error("Este jogo já está bloqueado para edição.");
+      throw new Error("Palpites ficam abertos apenas entre 24h e 1h antes do jogo.");
     }
 
     const prediction = {

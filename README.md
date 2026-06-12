@@ -6,7 +6,7 @@ Site simples de bolão entre amigos feito com React, Vite, TypeScript, TailwindC
 
 - Login, criação de conta e recuperação de senha por email.
 - Palpites de placar por partida.
-- Bloqueio automático de palpites 1 hora antes do início do jogo.
+- Palpites de jogos liberam 24 horas antes da partida e bloqueiam 1 hora antes do início.
 - Palpite de classificados da fase de grupos, bloqueado após confirmação.
 - Palpite de campeão, vice e terceiro lugar, bloqueado após confirmação.
 - Ranking com pontos de jogos, classificação, final e total.

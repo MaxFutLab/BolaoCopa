@@ -1,10 +1,23 @@
 import type { Match, MatchPrediction, RankingRow } from "../types";
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
+const TWENTY_FOUR_HOURS_MS = 24 * ONE_HOUR_MS;
+
+export type MatchPredictionEditStatus = "early" | "open" | "locked";
+
+export function getMatchPredictionEditStatus(
+  startsAt: string | Date,
+): MatchPredictionEditStatus {
+  const start = new Date(startsAt).getTime();
+  const diff = start - Date.now();
+
+  if (diff <= ONE_HOUR_MS) return "locked";
+  if (diff > TWENTY_FOUR_HOURS_MS) return "early";
+  return "open";
+}
 
 export function canEditMatchPrediction(startsAt: string | Date): boolean {
-  const start = new Date(startsAt).getTime();
-  return start - Date.now() > ONE_HOUR_MS;
+  return getMatchPredictionEditStatus(startsAt) === "open";
 }
 
 function outcome(scoreA: number, scoreB: number): "A" | "B" | "D" {

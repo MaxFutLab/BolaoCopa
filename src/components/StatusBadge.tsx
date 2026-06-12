@@ -1,6 +1,6 @@
-import { Lock, Pencil, Save } from "lucide-react";
+import { Clock, Lock, Pencil, Save } from "lucide-react";
 import type { Match, MatchPrediction } from "../types";
-import { canEditMatchPrediction } from "../lib/scoring";
+import { getMatchPredictionEditStatus } from "../lib/scoring";
 
 type StatusBadgeProps = {
   match: Match;
@@ -8,9 +8,18 @@ type StatusBadgeProps = {
 };
 
 export function StatusBadge({ match, prediction }: StatusBadgeProps) {
-  const canEdit = canEditMatchPrediction(match.starts_at);
+  const editStatus = getMatchPredictionEditStatus(match.starts_at);
 
-  if (!canEdit) {
+  if (editStatus === "early") {
+    return (
+      <span className="badge bg-amber-100 text-amber-900 ring-1 ring-amber-200">
+        <Clock size={13} className="mr-1" />
+        Em breve
+      </span>
+    );
+  }
+
+  if (editStatus === "locked") {
     return (
       <span className="badge bg-slate-900 text-white shadow-sm shadow-slate-900/20">
         <Lock size={13} className="mr-1" />

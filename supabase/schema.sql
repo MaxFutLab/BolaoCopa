@@ -442,6 +442,7 @@ with check (
     select 1 from public.matches
     where matches.id = match_id
       and matches.starts_at > now() + interval '1 hour'
+      and matches.starts_at <= now() + interval '24 hours'
   )
 );
 
@@ -461,9 +462,18 @@ using (
     select 1 from public.matches
     where matches.id = match_id
       and matches.starts_at > now() + interval '1 hour'
+      and matches.starts_at <= now() + interval '24 hours'
   )
 )
-with check (auth.uid() = user_id);
+with check (
+  auth.uid() = user_id
+  and exists (
+    select 1 from public.matches
+    where matches.id = match_id
+      and matches.starts_at > now() + interval '1 hour'
+      and matches.starts_at <= now() + interval '24 hours'
+  )
+);
 
 drop policy if exists "match_predictions_admin_all" on public.match_predictions;
 create policy "match_predictions_admin_all"

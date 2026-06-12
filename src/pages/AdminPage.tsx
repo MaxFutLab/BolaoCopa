@@ -1,9 +1,10 @@
-import { FormEvent, useState } from "react";
-import { Check, RefreshCw, Save, ShieldAlert, X } from "lucide-react";
+import { FormEvent, ReactNode, useState } from "react";
+import { Check, ChevronDown, RefreshCw, Save, ShieldAlert, X } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { RankingTable } from "../components/RankingTable";
 import { useAuth } from "../lib/auth";
 import { useCompetition } from "../lib/competitions";
+import { formatDateTime } from "../lib/date";
 import { usePoolData } from "../lib/usePoolData";
 import type { MatchWithTeams, PoolMembershipWithProfile, Team } from "../types";
 
@@ -70,37 +71,16 @@ export function AdminPage() {
             }
           />
 
-          <section className="surface p-4">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-black text-slate-950">Resultados dos jogos</h3>
-                <p className="text-sm text-slate-500">
-                  Ao salvar um resultado, a pontuacao dos palpites daquele jogo e recalculada.
-                </p>
-              </div>
-              <button
-                className="btn-secondary"
-                onClick={() => void runAction(recalculateScores, "Pontuacao recalculada.")}
-              >
-                <RefreshCw size={17} />
-                Recalcular tudo
-              </button>
-            </div>
-            <div className="grid gap-3">
-              {matches.map((match) => (
-                <ResultRow
-                  key={match.id}
-                  match={match}
-                  onSave={(scoreA, scoreB) =>
-                    runAction(
-                      () => saveMatchResult(match.id, scoreA, scoreB),
-                      "Resultado salvo.",
-                    )
-                  }
-                />
-              ))}
-            </div>
-          </section>
+          <MatchResultsPanel
+            matches={matches}
+            onRecalculate={() => runAction(recalculateScores, "Pontuacao recalculada.")}
+            onSaveResult={(matchId, scoreA, scoreB) =>
+              runAction(
+                () => saveMatchResult(matchId, scoreA, scoreB),
+                "Resultado salvo.",
+              )
+            }
+          />
 
           <section className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <GroupResultsForm
@@ -188,6 +168,138 @@ function MembershipRequests({
         </div>
       )}
     </section>
+  );
+}
+
+function MatchResultsPanel({
+  matches,
+  onRecalculate,
+  onSaveResult,
+}: {
+  matches: MatchWithTeams[];
+  onRecalculate: () => Promise<void>;
+  onSaveResult: (matchId: string, scoreA: number, scoreB: number) => Promise<void>;
+}) {
+  const [collapsed, setCollapsed] = useState({
+    finished: true,
+    upcoming: false,
+  });
+  const sortedMatches = [...matches].sort(
+    (first, second) =>
+      new Date(first.starts_at).getTime() - new Date(second.starts_at).getTime(),
+  );
+  const finishedMatches = sortedMatches.filter((match) => match.is_finished);
+  const upcomingMatches = sortedMatches.filter((match) => !match.is_finished);
+
+  function toggleGroup(group: "finished" | "upcoming") {
+    setCollapsed((current) => ({ ...current, [group]: !current[group] }));
+  }
+
+  return (
+    <section className="surface p-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-black text-slate-950">Resultados dos jogos</h3>
+          <p className="text-sm text-slate-500">
+            Ao salvar um resultado, a pontuacao dos palpites daquele jogo e recalculada.
+          </p>
+        </div>
+        <button className="btn-secondary" onClick={() => void onRecalculate()}>
+          <RefreshCw size={17} />
+          Recalcular tudo
+        </button>
+      </div>
+
+      <div className="grid gap-3">
+        <MatchResultsGroup
+          title="Jogos ainda por acontecer"
+          description="Partidas abertas ou aguardando resultado."
+          count={upcomingMatches.length}
+          collapsed={collapsed.upcoming}
+          onToggle={() => toggleGroup("upcoming")}
+        >
+          {upcomingMatches.map((match) => (
+            <ResultRow
+              key={match.id}
+              match={match}
+              onSave={(scoreA, scoreB) => onSaveResult(match.id, scoreA, scoreB)}
+            />
+          ))}
+        </MatchResultsGroup>
+
+        <MatchResultsGroup
+          title="Jogos ja realizados"
+          description="Partidas finalizadas ficam recolhidas por padrao para manter a pagina leve."
+          count={finishedMatches.length}
+          collapsed={collapsed.finished}
+          onToggle={() => toggleGroup("finished")}
+        >
+          {finishedMatches.map((match) => (
+            <ResultRow
+              key={match.id}
+              match={match}
+              onSave={(scoreA, scoreB) => onSaveResult(match.id, scoreA, scoreB)}
+            />
+          ))}
+        </MatchResultsGroup>
+      </div>
+    </section>
+  );
+}
+
+function MatchResultsGroup({
+  title,
+  description,
+  count,
+  collapsed,
+  onToggle,
+  children,
+}: {
+  title: string;
+  description: string;
+  count: number;
+  collapsed: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-md border border-slate-100 bg-white">
+      <button
+        className="flex w-full items-center justify-between gap-3 bg-slate-50 px-3 py-3 text-left transition hover:bg-sky-50"
+        type="button"
+        aria-expanded={!collapsed}
+        onClick={onToggle}
+      >
+        <span className="min-w-0">
+          <span className="block text-sm font-black text-slate-950">{title}</span>
+          <span className="block text-xs font-semibold text-slate-500">{description}</span>
+        </span>
+        <span className="flex shrink-0 items-center gap-2">
+          <span className="rounded-full bg-slate-950 px-2.5 py-1 text-xs font-black text-white">
+            {count}
+          </span>
+          <ChevronDown
+            size={18}
+            className={[
+              "text-slate-500 transition",
+              collapsed ? "-rotate-90" : "rotate-0",
+            ].join(" ")}
+          />
+        </span>
+      </button>
+
+      {!collapsed ? (
+        <div className="grid gap-3 p-3">
+          {count > 0 ? (
+            children
+          ) : (
+            <p className="rounded-md border border-dashed border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-500">
+              Nenhum jogo neste grupo.
+            </p>
+          )}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -342,7 +454,9 @@ function ResultRow({
         <p className="font-black text-slate-950">
           {match.team_a.name} x {match.team_b.name}
         </p>
-        <p className="text-sm text-slate-500">{match.stage}</p>
+        <p className="text-sm text-slate-500">
+          {match.stage} - {formatDateTime(match.starts_at)}
+        </p>
       </div>
       <input
         className="field text-center font-black"
